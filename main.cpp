@@ -39,8 +39,8 @@ using namespace tlp;
 
 vector<aoNode*> nodePointer; //Vector of Pointers to Nodes in the Graph
 vector<aoNode*>::iterator nodePointer_it;
-vector<aoNode*> changePointer; //Vector of pointers to changed nodes
-vector<aoNode*>::iterator changedPointer_it;
+vector<int> changedPointer; //Vector of pointers to changed nodes or store only their indexes
+vector<int>::iterator changedPointer_it;
 int nValue, hValue; //values for Node and HyperArc linear Indexing
 vector<int> node_list;
 vector<int> hArc_list;
@@ -459,13 +459,73 @@ void searchGraph(vector<aoNode*> &nodePointer){
 
         }
 
+
         //Backward Cost Propogation
-        aoNode cNode;
-        changePointer.push_back((*nodePointer_it));
-        while(!changePointer.empty()){//If any node is changed back propagate the cost
+        aoNode cNode; //Changed Node Pointer
+        changedPointer.push_back(current_node.nIndex);
+        std::cout << "Index of Current Node : " << current_node.nIndex << std::endl; //Debug Code
+        std::cout << "Size of the Changed Nodes Vector : " << changedPointer.size() << std::endl; //Debug Code
+
+        while(!changedPointer.empty()){//If any node is changed back propagate the cost
+
+            changedPointer_it = std::min_element(changedPointer.begin(),changedPointer.end()); //Selecting the Lowest Node from the set of changed nodes
+            std::cout << "Changed Pointer Lowest Value : " << *changedPointer_it - 1<< std::endl;//Debug Code
+            cNode = *nodePointer.at(*changedPointer_it-1); //Again -1 is for referencing correct vector elements
+            std::cout << "Changed node Index : " << cNode.nIndex << std::endl;//Debug Code
+
+
+            if(cNode.nSolved != 1){
+
+
+                int child_cost = 0; //Local Variable
+                //This value of hArc can be tricky in updating changed nodes
+                int value = hArc_list.back()-1; //Indexes are from 1 so need to use -1 for referencing vectors
+                int cost = 0;//Local Variable
+                aoNode child_node; //Local Variable
+                std::cout << "Child nodes of changed node : " << cNode.hArcs[value].nChild << std::endl;//Debug Code
+
+
+                for(int c=0; c < cNode.hArcs[value].nChild; c++){ //Note that the Indexes are from 1 not 0
+
+
+                    //std::cout << "C value : " << c << std::endl;
+                    child_node = **(cNode.hArcs[value].childPointer.at(c));
+                    std::cout << "Child Index : " << child_node.nIndex << std::endl;//Debug Code
+                    cost = child_node.nCost;
+                    std::cout << "Child Cost : " << cost << std::endl;//Debug Code
+
+
+
+                    if(cost > child_cost){
+
+                        child_cost = cost; //Assigning the cost of the node with high cost in the hArc of the current node
+                        head_node = child_node;
+
+                    }
+
+
+                }
+
+                std::cout << "Current Node Index : " << head_node.nIndex << std::endl;//Debug Code
+                changedPointer.erase(changedPointer_it); //Need to remove this node index from changed pointers vectors at the end
+                if(!cNode.parentIndex.empty()){//If the node has parents add their indexes to the changed vector
+
+                    for(int P = 0; P <= cNode.parentIndex.size() ; P++){
+
+                        changedPointer.push_back(cNode.parentIndex.at(P));
+
+                    }
+
+                }
+                std::cout << "Size of the Changed Nodes Vector : " << changedPointer.size() << std::endl; //Debug Code
+
+
+            }
+
 
         }
-        aoNode node = current_node; //Dummy Variable
+
+        /*aoNode node = current_node; //Dummy Variable
         node.nCost = hCost;
         std::cout << "Node Index : " << node.nIndex << " with updated cost : " << node.nCost << std::endl;//Debug Code
         nList.push_back(node); //Pushing the nodes with updated costs in a new vector
@@ -502,7 +562,7 @@ void searchGraph(vector<aoNode*> &nodePointer){
 
             std::cout << "Current Node Index : " << head_node.nIndex << std::endl;//Debug Code
 
-        }
+        }*/
 
 
 
