@@ -383,12 +383,13 @@ void searchGraph(vector<aoNode*> &nodePointer){
     //std::cout << "Graph Start Node Index : " << (*nodePointer_it)->nIndex << std::endl; //Debug Code
     //std::cout << "Head Node Index : " << head_node.nIndex << std::endl; //Debug Code
 
-    while(current_node.nSolved!=true){
+    while(head_node.nSolved!=true){
 
-        current_node = head_node; //Assigning the head node as current node
+        //current_node = head_node; //Assigning the head node as current node
 
         //std::cout << "Head Node is Not Solved " << std::endl;
 
+        std::cout << "Current Node Index : " << current_node.nIndex << std::endl;
         node_list.push_back(current_node.nIndex); //Pushing the index of the node
 
         //forward phase
@@ -482,7 +483,7 @@ void searchGraph(vector<aoNode*> &nodePointer){
                 int value = hArc_list.back()-1; //Indexes are from 1 so need to use -1 for referencing vectors
                 int cost = 0;//Local Variable
                 aoNode child_node; //Local Variable
-                std::cout << "Child nodes of changed node : " << cNode.hArcs[value].nChild << std::endl;//Debug Code
+                std::cout << "Number of Child nodes of changed node : " << cNode.hArcs[value].nChild << std::endl;//Debug Code
 
 
                 for(int c=0; c < cNode.hArcs[value].nChild; c++){ //Note that the Indexes are from 1 not 0
@@ -499,14 +500,15 @@ void searchGraph(vector<aoNode*> &nodePointer){
                     if(cost > child_cost){
 
                         child_cost = cost; //Assigning the cost of the node with high cost in the hArc of the current node
-                        head_node = child_node;
+//                        head_node = child_node; //TODO check to modify this to current_node
+                        current_node = child_node;
 
                     }
 
 
                 }
 
-                std::cout << "Current Node Index : " << head_node.nIndex << std::endl;//Debug Code
+                std::cout << "Current Node Index : " << current_node.nIndex << std::endl;//Debug Code
                 changedPointer.erase(changedPointer_it); //Need to remove this node index from changed pointers vectors at the end
                 if(!cNode.parentIndex.empty()){//If the node has parents add their indexes to the changed vector
 
