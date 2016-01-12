@@ -323,7 +323,7 @@ int main(int argc, char **argv)
 
               int data = input.front()-48;
               nParents = data;
-              std::cout << "Number of Parent Nodes : " << nParents << std::endl;
+              std::cout << "Number of Parent Nodes of Node " << (*nodePointer_it)->nIndex << " : " << nParents << std::endl; //Debug Code
               input.erase(input.begin());
 
           }
@@ -371,7 +371,7 @@ int main(int argc, char **argv)
 
 void searchGraph(vector<aoNode*> &nodePointer){
 
-    std::cout << "Searching graph..." << std::endl;
+    std::cout << "Grap search initiated..." << std::endl;
 
     nodePointer_it = nodePointer.begin(); //Pointing to the start/head node in he graph
 
@@ -389,13 +389,15 @@ void searchGraph(vector<aoNode*> &nodePointer){
 
         //std::cout << "Head Node is Not Solved " << std::endl;
 
+        std::cout << "Searching graph..." << std::endl;
         std::cout << "Current Node Index : " << current_node.nIndex << std::endl;
         node_list.push_back(current_node.nIndex); //Pushing the index of the node
 
         //forward phase
 
         int hCost= inf; //Local Variable
-        std::cout << "Number of hyperArcs : " << current_node.nHyperArcs << std::endl; //Debug Code
+        std::cout << "Number of hyperArcs of Node " << current_node.nIndex << " : " << current_node.nHyperArcs << std::endl; //Debug Code
+        //The following code is to Mark the BEST path based on the children costs
         for(int h=0 ; h < current_node.nHyperArcs ; h++){ //Loop to decide which hArc is of Low Cost
 
             int cost=0;//Local Variable
@@ -404,31 +406,30 @@ void searchGraph(vector<aoNode*> &nodePointer){
 
                 std::cout << "Numer of child Nodes of AND hyperArc " << current_node.hArcs[h].hIndex << " : " << head_node.hArcs->nChild << std::endl;//Debug Code
 
-                bool solved = 1; //Temp Variable
+                //bool solved = 1; //Temp Variable
                 aoNode child_node; //Local Variable
                 for(int c=0; c < current_node.hArcs[h].nChild ; c++){
 
                     child_node = **(current_node.hArcs[h].childPointer.at(c));
-                    cost = cost + child_node.nCost;
+                    cost = cost + child_node.nCost; //Total cost of children through this hArc
                     std::cout << "Child Node Index : " << child_node.nIndex << std::endl;//Debug code
 
-                    solved = solved * child_node.nSolved;
+                    //solved = solved * child_node.nSolved;
 
-//                    if(child_node.nSolved == 1){//if the child node is not solved(in another sense not terminal)
+                    /* if(child_node.nSolved == 1){//if the child node is not solved(in another sense not terminal)
 
-//                        current_node.nSolved = 1; //TODO check how this works on large graphs
-//                    }
-//                    else{
-//                        current_node.nSolved = 0;
-//                    }
-
+                        current_node.nSolved = 1; //TODO check how this works on large graphs
+                    }
+                    else{
+                        current_node.nSolved = 0;
+                    } */
 
                 }
 
-                current_node.nSolved = solved;
-                std::cout << "Is the Current Node Solved ? " << current_node.nSolved << std::endl;//Debug Code
+                //current_node.nSolved = solved;
+                //std::cout << "Is the Node " << current_node.nIndex << " Solved through HyperArc " << current_node.hArcs[h].hIndex << " ? " << current_node.nSolved << std::endl;//Debug Code
 
-                std::cout << "hArc cost : " << cost << std::endl; //Debug Code
+                //std::cout << "hArc cost : " << cost << std::endl; //Debug Code
 
                 if(cost < hCost){
 
@@ -440,14 +441,15 @@ void searchGraph(vector<aoNode*> &nodePointer){
 
                     }
 
-                    hArc_list.push_back(current_node.hArcs[h].hIndex); //This is the marked path from a node
-                    //std::cout << "Node list Size : " << node_list.size() << std::endl;//Debug Code
+                    hArc_list.push_back(current_node.hArcs[h].hIndex); //This is the marked path from current node to the next node
+
+                   /* //std::cout << "Node list Size : " << node_list.size() << std::endl;//Debug Code
                     //std::cout << "Node list front : " << node_list.front() << std::endl;//Debug Code
                     //std::cout << "Node list back : " << node_list.back() << std::endl;//Debug Code
 
                     //std::cout << "hArc list Size : " << hArc_list.size() << std::endl;//Debug Code
                     //std::cout << "hArc list front : " << hArc_list.front() << std::endl;//Debug Code
-                    //std::cout << "hArc list back : " << hArc_list.back() << std::endl;//Debug Code
+                    //std::cout << "hArc list back : " << hArc_list.back() << std::endl;//Debug Code */
 
                 }
 
@@ -460,33 +462,38 @@ void searchGraph(vector<aoNode*> &nodePointer){
 
         }
 
+        std::cout << "Current Best path is from node " << node_list.back() << " through hArc " <<  hArc_list.back() << "..."<< std::endl; //Debug Code
+
 
         //Backward Cost Propogation
+        std::cout << "Backward Cost Iteration..." << std::endl;
         aoNode cNode; //Changed Node Pointer
         changedPointer.push_back(current_node.nIndex);
-        std::cout << "Index of Current Node : " << current_node.nIndex << std::endl; //Debug Code
+        std::cout << "Current Node Index : " << current_node.nIndex << std::endl; //Debug Code
         std::cout << "Size of the Changed Nodes Vector : " << changedPointer.size() << std::endl; //Debug Code
 
         while(!changedPointer.empty()){//If any node is changed back propagate the cost
 
-            changedPointer_it = std::min_element(changedPointer.begin(),changedPointer.end()); //Selecting the Lowest Node from the set of changed nodes
-            std::cout << "Changed Pointer Lowest Value : " << *changedPointer_it - 1<< std::endl;//Debug Code
+            changedPointer_it = std::max_element(changedPointer.begin(),changedPointer.end()); //Selecting the Lowest Node from the set of changed nodes
+            std::cout << "Changed Vector Highest Value Node : " << *changedPointer_it << std::endl;//Debug Code
             cNode = *nodePointer.at(*changedPointer_it-1); //Again -1 is for referencing correct vector elements
             std::cout << "Changed node Index : " << cNode.nIndex << std::endl;//Debug Code
+            std::cout << "Changed Node no of Parents : " << cNode.parentIndex.size() << std::endl; //Debug Code
 
 
+            bool solved = 1; //Temp Variable
             if(cNode.nSolved != 1){
-
 
                 int child_cost = 0; //Local Variable
                 //This value of hArc can be tricky in updating changed nodes
                 int value = hArc_list.back()-1; //Indexes are from 1 so need to use -1 for referencing vectors
                 int cost = 0;//Local Variable
                 aoNode child_node; //Local Variable
-                std::cout << "Number of Child nodes of changed node : " << cNode.hArcs[value].nChild << std::endl;//Debug Code
+                //TODO Check how the hArcs can be referenced both locally and globally
+                std::cout << "Number of Child nodes of changed node " << cNode.nIndex << " through hArc " << cNode.hArcs[0].hIndex << " : " << cNode.hArcs[value].nChild << std::endl;//Debug Code
 
 
-                for(int c=0; c < cNode.hArcs[value].nChild; c++){ //Note that the Indexes are from 1 not 0
+                for(int c = 0; c < cNode.hArcs[value].nChild; c++){ //Note that the Indexes are from 1 not 0
 
 
                     //std::cout << "C value : " << c << std::endl;
@@ -495,12 +502,12 @@ void searchGraph(vector<aoNode*> &nodePointer){
                     cost = child_node.nCost;
                     std::cout << "Child Cost : " << cost << std::endl;//Debug Code
 
-
+                    solved = solved * child_node.nSolved;
 
                     if(cost > child_cost){
 
                         child_cost = cost; //Assigning the cost of the node with high cost in the hArc of the current node
-//                        head_node = child_node; //TODO check to modify this to current_node
+                        //head_node = child_node; //TODO check to modify this to current_node
                         current_node = child_node;
 
                     }
@@ -508,21 +515,27 @@ void searchGraph(vector<aoNode*> &nodePointer){
 
                 }
 
-                std::cout << "Current Node Index : " << current_node.nIndex << std::endl;//Debug Code
+                cNode.nSolved = solved;
+                std::cout << "Is the Changed Node " << cNode.nIndex << " Solved through HyperArc " << cNode.hArcs[value].hIndex << " ? " << cNode.nSolved << std::endl;//Debug Code
+                std::cout << "Next Node Index : " << current_node.nIndex << std::endl;//Debug Code
                 changedPointer.erase(changedPointer_it); //Need to remove this node index from changed pointers vectors at the end
-                if(!cNode.parentIndex.empty()){//If the node has parents add their indexes to the changed vector
-
-                    for(int P = 0; P <= cNode.parentIndex.size() ; P++){
-
-                        changedPointer.push_back(cNode.parentIndex.at(P));
-
-                    }
-
-                }
-                std::cout << "Size of the Changed Nodes Vector : " << changedPointer.size() << std::endl; //Debug Code
-
 
             }
+
+            if(!cNode.parentIndex.empty()){//If the node has parents add their indexes to the changed vector
+
+                std::cout << "The Changed Node has parents nodes..." << std::endl; //Debug Code
+
+                //for(int P = 0; P <= cNode.parentIndex.size() ; P++){
+
+                    //std::cout << "Parent Vector Index : " << cNode.parentIndex.at(0) << std::endl; //Debug Code
+                    //hangedPointer.push_back(cNode.parentIndex.at(0));
+
+                //}
+
+            }
+            std::cout << "Size of the Changed Nodes Vector : " << changedPointer.size() << std::endl; //Debug Code
+
 
 
         }
